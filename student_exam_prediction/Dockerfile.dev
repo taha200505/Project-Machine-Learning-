@@ -1,0 +1,45 @@
+# Dockerfile.dev
+# Development version with hot reload and debugging tools
+
+FROM python:3.11-slim
+
+# Environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies including dev tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    git \
+    vim \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements.txt .
+
+# Install Python dependencies + dev tools
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir \
+    pytest \
+    pytest-cov \
+    black \
+    flake8 \
+    ipython \
+    jupyter
+
+# Expose port
+EXPOSE 8501
+
+# Run with hot reload enabled
+CMD ["streamlit", "run", "app.py", \
+     "--server.port=8501", \
+     "--server.address=0.0.0.0", \
+     "--server.headless=true", \
+     "--server.runOnSave=true", \
+     "--server.fileWatcherType=auto", \
+     "--browser.gatherUsageStats=false"]
